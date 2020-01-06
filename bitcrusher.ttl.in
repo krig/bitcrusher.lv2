@@ -15,8 +15,9 @@
 	rdfs:comment """
 Simple bit crusher.
 The bit depth is interpolated to provide finer control over the sound. """ ;
-	lv2:minorVersion 1 ;
 	lv2:majorVersion 0 ;
+	lv2:minorVersion 0 ;
+    lv2:microVersion 1 ;
 	lv2:optionalFeature lv2:hardRTCapable ;
 	lv2:port [
 		a lv2:InputPort, lv2:ControlPort ;
@@ -74,7 +75,12 @@ The bit depth is interpolated to provide finer control over the sound. """ ;
 	doap:developer [
 		foaf:name "Kristoffer Gronlund" ;
 		foaf:homepage <https://6510.nu/> ;
-		foaf:mbox <krig@koru.se> ;
+		foaf:mbox <mailto:krig@koru.se> ;
+	] ;
+	doap:maintainer [
+		foaf:name "Kristoffer Gronlund" ;
+		foaf:homepage <https://6510.nu/> ;
+		foaf:mbox <mailto:krig@koru.se> ;
 	] ;
 
 	mod:brand "iskrig" ;

@@ -66,6 +66,12 @@ install: all
 	install -m755 $(BUILDDIR)$(LV2NAME)$(LIB_EXT) $(DESTDIR)$(LV2DIR)/$(BUNDLE)
 	install -m644 $(BUILDDIR)manifest.ttl $(BUILDDIR)$(LV2NAME).ttl $(DESTDIR)$(LV2DIR)/$(BUNDLE)
 
+modsdk:
+	docker pull moddevices/modsdk
+	make
+	make PREFIX=`pwd`/tgt install
+	docker run -p 9000:9000 -v `pwd`/tgt/lib64/lv2:/lv2 moddevices/modsdk
+
 validate:
 	sord_validate $(find /usr/lib64/lv2 -name '*.ttl') $(find build -name '*.ttl')
 
@@ -73,4 +79,4 @@ clean:
 	rm -f $(BUILDDIR)manifest.ttl $(BUILDDIR)$(LV2NAME).ttl $(BUILDDIR)$(LV2NAME)$(LIB_EXT) lv2syms
 	-test -d $(BUILDDIR) && rmdir $(BUILDDIR) || true
 
-.PHONY: clean all install validate
+.PHONY: clean all install validate modsdk
