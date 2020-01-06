@@ -1,13 +1,13 @@
 #!/usr/bin/make -f
 OPTIMIZATIONS ?= -msse -msse2 -mfpmath=sse -ffast-math -fomit-frame-pointer -O3 -fno-finite-math-only -DNDEBUG
 PREFIX ?= /usr/local
-CFLAGS ?= $(OPTIMIZATIONS) -Wal
+CFLAGS ?= $(OPTIMIZATIONS) -Wall
 
 PKG_CONFIG?=pkg-config
 STRIP?=strip
 STRIPFLAGS?=-s
 
-LV2DIR ?= $(PREFIX)/lib/lv2
+LV2DIR ?= $(PREFIX)/lib64/lv2
 LOADLIBS=-lm
 LV2NAME=bitcrusher
 BUNDLE=bitcrusher.lv2
@@ -26,6 +26,8 @@ else
   LIB_EXT=.so
   EXTENDED_RE=-r
 endif
+
+targets+=$(BUILDDIR)$(LV2NAME)$(LIB_EXT)
 
 # check for build-dependencies
 ifeq ($(shell pkg-config --exists lv2 || echo no), no)
@@ -64,8 +66,11 @@ install: all
 	install -m755 $(BUILDDIR)$(LV2NAME)$(LIB_EXT) $(DESTDIR)$(LV2DIR)/$(BUNDLE)
 	install -m644 $(BUILDDIR)manifest.ttl $(BUILDDIR)$(LV2NAME).ttl $(DESTDIR)$(LV2DIR)/$(BUNDLE)
 
+validate:
+	sord_validate $(find /usr/lib64/lv2 -name '*.ttl') $(find build -name '*.ttl')
+
 clean:
 	rm -f $(BUILDDIR)manifest.ttl $(BUILDDIR)$(LV2NAME).ttl $(BUILDDIR)$(LV2NAME)$(LIB_EXT) lv2syms
 	-test -d $(BUILDDIR) && rmdir $(BUILDDIR) || true
 
-.PHONY: clean all install
+.PHONY: clean all install validate

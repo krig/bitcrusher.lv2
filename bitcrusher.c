@@ -58,6 +58,20 @@ activate(LV2_Handle instance) {
 // Convert gain in dB to a coefficient
 #define DB_CO(g) ((g) > -90.0f ? powf(10.0f, (g) * 0.05f) : 0.0f)
 
+static float
+crush(float sample, uint32_t depth) {
+    // transpose input [-1, 1] to [0, 1]
+    double val = ((double)sample + 1.0) * 0.5;
+    // transpose to [0, 1<<depth]
+    val = val * (double)(((uint64_t)1 << depth) - 1);
+    // crush
+    val = floor(val + 0.5);
+    // transpose back to [0, 1]
+    val = val / (double)(((uint64_t)1 << depth) - 1);
+    // transpose back to [-1, 1]
+    return (float)(val * 2.0) - 1.0;
+}
+
 static void
 run(LV2_Handle instance, uint32_t n_samples) {
     const MyPlugin* self = (const MyPlugin*)instance;
@@ -66,28 +80,22 @@ run(LV2_Handle instance, uint32_t n_samples) {
     const float* const input = self->input;
     float* const output = self->output;
     const float coef = DB_CO(gain);
-    int32_t idepth = (int32_t)depth;
-    idepth = idepth < 0 ? 0 : (idepth > 32 ? 32 : idepth);
+    uint32_t idepth = (uint32_t)depth;
+    idepth = idepth < 1 ? 1 : (idepth > 32 ? 32 : idepth);
 
     for (uint32_t pos = 0; pos < n_samples; ++pos) {
-        // transpose input [-1, 1] to [0, 1]
-        double val = ((double)input[pos] + 1.0) * 0.5;
-        // transpose to [0, 1<<depth]
-        val = val * (double)(1 << idepth);
-        // crush
-        val = round(val);
-        // transpose back to [0, 1]
-        val = val / (double)(1 << idepth);
-        // transpose back to [-1, 1]
-        val = (val * 2.0) - 1.0;
-        // amplify by multiplying with coef
-        float fval = (float)val * coef;
-        // hard clamp to [-1, 1]
-        if (fval < -1.0)
-            fval = -1.0;
-        else if (fval > 1.0)
-            fval = 1.0;
-        output[pos] = fval;
+        // gain and clamp
+        float gval = input[pos] * coef;
+        gval = gval > 1.f ? 1.f : (gval < -1.f ? -1.f : gval);
+
+        if (idepth < 32) {
+            float lo = crush(gval, idepth);
+            float hi = crush(gval, idepth + 1);
+            float delta = depth - (float)idepth;
+            output[pos] = lo + ((hi - lo) * 0.5f) * delta;
+        } else {
+            output[pos] = crush(gval, idepth);
+        }
     }
 }
 
