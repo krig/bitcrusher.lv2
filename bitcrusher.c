@@ -10,6 +10,7 @@
 typedef enum {
 PORT_GAIN,
 PORT_DEPTH,
+PORT_SAMPLERATE,
 PORT_INPUT,
 PORT_OUTPUT,
 } PortIndex;
@@ -17,8 +18,11 @@ PORT_OUTPUT,
 typedef struct {
     const float* gain;
     const float* depth;
+    const float* samplerate;
     const float* input;
     float* output;
+    int sample_counter;
+    float last_sample;
 } MyPlugin;
 
 static LV2_Handle
@@ -42,6 +46,9 @@ connect_port(LV2_Handle instance,
         case PORT_DEPTH:
             self->depth = (const float*)data;
             break;
+        case PORT_SAMPLERATE:
+            self->samplerate = (const float*)data;
+            break;
         case PORT_INPUT:
             self->input = (const float*)data;
             break;
@@ -53,6 +60,9 @@ connect_port(LV2_Handle instance,
 
 static void
 activate(LV2_Handle instance) {
+    MyPlugin* self = (MyPlugin*)instance;
+    self->sample_counter = 0;
+    self->last_sample = 0.f;
 }
 
 // Convert gain in dB to a coefficient
@@ -72,30 +82,57 @@ crush(float sample, uint32_t depth) {
     return (float)(val * 2.0) - 1.0;
 }
 
+static int
+samplerate_hold(const float samplerate_hold_index) {
+    switch ((const int)samplerate_hold_index) {
+        case 0: return 0;
+        case 1: return 1;
+        case 2: return 3;
+        case 3: return 7;
+        default: return 0;
+    }
+}
+
 static void
 run(LV2_Handle instance, uint32_t n_samples) {
-    const MyPlugin* self = (const MyPlugin*)instance;
+    MyPlugin* self = (MyPlugin*)instance;
     const float gain = *(self->gain);
     const float depth = *(self->depth);
     const float* const input = self->input;
     float* const output = self->output;
     const float coef = DB_CO(gain);
     uint32_t idepth = (uint32_t)depth;
-    idepth = idepth < 1 ? 1 : (idepth > 32 ? 32 : idepth);
+    idepth = idepth < 1 ? 1 : (idepth > 24 ? 24 : idepth);
+    const int hold = samplerate_hold(*(self->samplerate));
 
     for (uint32_t pos = 0; pos < n_samples; ++pos) {
-        // gain and clamp
-        float gval = input[pos] * coef;
-        gval = gval > 1.f ? 1.f : (gval < -1.f ? -1.f : gval);
+        // reduce sample rate
+        float inval = input[pos];
+        if (self->sample_counter == 0) {
+            self->sample_counter++;
+        } else if (self->sample_counter > hold)  {
+            self->sample_counter = 0;
+        } else {
+            inval = self->last_sample;
+            self->sample_counter++;
+        }
 
-        if (idepth < 32) {
+        float gval = inval * coef;
+        // gain and clamp
+        gval = gval > 1.f ? 1.f : (gval < -1.f ? -1.f : gval);
+        float outval = 0.f;
+
+        // crush bits
+        if (idepth < 24) {
             float lo = crush(gval, idepth);
             float hi = crush(gval, idepth + 1);
             float delta = depth - (float)idepth;
-            output[pos] = lo + ((hi - lo) * 0.5f) * delta;
+            outval = lo + ((hi - lo) * 0.5f) * delta;
         } else {
-            output[pos] = crush(gval, idepth);
+            outval = crush(gval, idepth);
         }
+        self->last_sample = inval;
+        output[pos] = outval;
     }
 }
 

@@ -11,8 +11,7 @@
 @prefix mod:  <http://moddevices.com/ns/mod#> .
 
 <http://6510.nu/plugins/bitcrusher>
-	a lv2:Plugin ,
-		lv2:DistortionPlugin ;
+	a lv2:Plugin , lv2:DistortionPlugin ;
 	lv2:project <http://lv2plug.in/ns/lv2> ;
 	doap:name "Bitcrusher";
 	doap:license <http://opensource.org/licenses/isc> ;
@@ -24,7 +23,7 @@ The bit depth is interpolated to provide finer control over the sound. """ ;
     lv2:microVersion 1 ;
 	lv2:optionalFeature lv2:hardRTCapable ;
 	lv2:port [
-		a lv2:InputPort, lv2:ControlPort ;
+		a lv2:InputPort , lv2:ControlPort ;
 		lv2:index 0 ;
 		lv2:symbol "gain" ;
 		lv2:name "Gain" ;
@@ -46,13 +45,13 @@ The bit depth is interpolated to provide finer control over the sound. """ ;
 			rdf:value -10.0
 		]
 	] , [
-		a lv2:InputPort, lv2:ControlPort ;
+		a lv2:InputPort , lv2:ControlPort ;
 		lv2:index 1 ;
 		lv2:symbol "depth" ;
 		lv2:name "Depth" ;
-		lv2:default 32.0 ;
+		lv2:default 24.0 ;
 		lv2:minimum 1.0 ;
-		lv2:maximum 32.0 ;
+		lv2:maximum 24.0 ;
 		lv2:scalePoint [
 			rdfs:label "+1" ;
 			rdf:value 1.0
@@ -63,16 +62,42 @@ The bit depth is interpolated to provide finer control over the sound. """ ;
 			rdfs:label "-1" ;
 			rdf:value -1.0
 		]
-	] , [
+	], [
+        a lv2:InputPort , lv2:ControlPort ;
+        lv2:index 2 ;
+        lv2:symbol "samplerate" ;
+        lv2:name "Samplerate" ;
+        lv2:default 0 ;
+        lv2:minimum 0 ;
+        lv2:maximum 3 ;
+        lv2:portProperty lv2:enumeration, lv2:integer;
+        lv2:scalePoint [
+            rdf:value 0 ;
+            rdfs:label "/1" ;
+            rdfs:comment "Normal samplerate" ;
+        ], [
+            rdf:value 1 ;
+            rdfs:label "/2" ;
+            rdfs:comment "Half samplerate" ;
+        ], [
+            rdf:value 2 ;
+            rdfs:label "/4" ;
+            rdfs:comment "Quarter samplerate" ;
+        ], [
+            rdf:value 3 ;
+            rdfs:label "/8" ;
+            rdfs:comment "1/8 samplerate" ;
+        ];
+    ], [
 		a lv2:AudioPort ,
 			lv2:InputPort ;
-		lv2:index 2 ;
+		lv2:index 3 ;
 		lv2:symbol "in" ;
 		lv2:name "In"
 	] , [
 		a lv2:AudioPort ,
 			lv2:OutputPort ;
-		lv2:index 3 ;
+		lv2:index 4 ;
 		lv2:symbol "out" ;
 		lv2:name "Out"
 	] ;
