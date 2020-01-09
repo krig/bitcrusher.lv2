@@ -1,0 +1,87 @@
+@prefix doap:  <http://usefulinc.com/ns/doap#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix lv2:   <http://lv2plug.in/ns/lv2core#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix units: <http://lv2plug.in/ns/extensions/units#> .
+@prefix mod:  <http://moddevices.com/ns/mod#> .
+
+<http://6510.nu/plugins/bitcrusher>
+	a lv2:Plugin ,
+		lv2:DistortionPlugin ;
+	lv2:project <http://lv2plug.in/ns/lv2> ;
+	doap:name "Bitcrusher";
+	doap:license <http://opensource.org/licenses/isc> ;
+	rdfs:comment """
+Simple bit crusher.
+The bit depth is interpolated to provide finer control over the sound. """ ;
+	lv2:majorVersion 0 ;
+	lv2:minorVersion 0 ;
+    lv2:microVersion 1 ;
+	lv2:optionalFeature lv2:hardRTCapable ;
+	lv2:port [
+		a lv2:InputPort, lv2:ControlPort ;
+		lv2:index 0 ;
+		lv2:symbol "gain" ;
+		lv2:name "Gain" ;
+		lv2:default 0.0 ;
+		lv2:minimum -90.0 ;
+		lv2:maximum 24.0 ;
+		units:unit units:db ;
+		lv2:scalePoint [
+			rdfs:label "+5" ;
+			rdf:value 5.0
+		] , [
+			rdfs:label "0" ;
+			rdf:value 0.0
+		] , [
+			rdfs:label "-5" ;
+			rdf:value -5.0
+		] , [
+			rdfs:label "-10" ;
+			rdf:value -10.0
+		]
+	] , [
+		a lv2:InputPort, lv2:ControlPort ;
+		lv2:index 1 ;
+		lv2:symbol "depth" ;
+		lv2:name "Depth" ;
+		lv2:default 32.0 ;
+		lv2:minimum 1.0 ;
+		lv2:maximum 32.0 ;
+		lv2:scalePoint [
+			rdfs:label "+1" ;
+			rdf:value 1.0
+		] , [
+			rdfs:label "0" ;
+			rdf:value 0.0
+		] , [
+			rdfs:label "-1" ;
+			rdf:value -1.0
+		]
+	] , [
+		a lv2:AudioPort ,
+			lv2:InputPort ;
+		lv2:index 2 ;
+		lv2:symbol "in" ;
+		lv2:name "In"
+	] , [
+		a lv2:AudioPort ,
+			lv2:OutputPort ;
+		lv2:index 3 ;
+		lv2:symbol "out" ;
+		lv2:name "Out"
+	] ;
+	doap:developer [
+		foaf:name "Kristoffer Gronlund" ;
+		foaf:homepage <https://6510.nu/> ;
+		foaf:mbox <mailto:krig@koru.se> ;
+	] ;
+	doap:maintainer [
+		foaf:name "Kristoffer Gronlund" ;
+		foaf:homepage <https://6510.nu/> ;
+		foaf:mbox <mailto:krig@koru.se> ;
+	] ;
+
+	mod:brand "iskrig" ;
+	mod:label "Bitcrusher" .
